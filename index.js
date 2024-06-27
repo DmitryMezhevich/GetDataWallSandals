@@ -3,7 +3,7 @@ const cors = require('cors');
 
 const mountRouter = require('./router/mountRouter');
 
-const PORT = 3010;
+const PORT = 3005;
 const app = express();
 
 app.use(cors());
