@@ -121,14 +121,16 @@ class TarckController {
                     }
                 };
 
-                const reposts = item.reposts.count;
-                const date = item.date;
-                if (reposts >= filter.noLessReposts && reposts <= filter.noMoreReposts) {
-                    if (date >= filter.startDate && date <= filter.endDate && date > filter.minDate) {
-                        return new ItemPost(item);
+                if (!item.hasOwnProperty('copy_history')) {
+                    const reposts = item.reposts.count;
+                    const date = item.date;
+                    if (reposts >= filter.noLessReposts && reposts <= filter.noMoreReposts) {
+                        if (date >= filter.startDate && date <= filter.endDate && date > filter.minDate) {
+                            return new ItemPost(item);
+                        }
                     }
+                    return [];
                 }
-                return [];
             });
             urlList = urlList.sort((a, b) => b.reposts - a.reposts);
 
