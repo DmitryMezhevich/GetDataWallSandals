@@ -1,180 +1,23 @@
 const axios = require('axios');
-const moment = require('moment');
 const logger = require('../logger');
 
 const sqlRequest = require('../db/requestSQL-helper');
-
-const TOKEN =
-    'vk1.a.KFKmxEKIi-kJiFKL4vbjsc5m2FIGRGEWKXFNvZzAIIKMbohUPGcOUBv812djGZy9H4vIJhVHsBm96QaC4R71fs0cw9FdJxi84v2PjZ0gZ-Vbaa8Debn9wKuJKBads66lO6TnB0FvZxGDXk10ql5JbAYDUozXDS4oLJSohLIjxoUx06n5Hmq0HPYDaVKHoh2KMrJK2Y02BPnVy8f4t49w6g';
+const FilterModel = require('../models/filterModel');
+const constrollerHelper = require('../helpers/controller-helper');
 
 class TarckController {
     // Отправляем события просмотра в телеграм
     async get(req, res, next) {
         try {
-            const filter = {
-                deep: req.body.deep.length === 0 ? 10 : parseInt(req.body.deep),
-                noLessReposts:
-                    req.body.noLessReposts.length === 0
-                        ? 0
-                        : parseInt(req.body.noLessReposts),
-                noMoreReposts:
-                    req.body.noMoreReposts.length === 0
-                        ? Number.MAX_VALUE
-                        : parseInt(req.body.noMoreReposts),
-                startDate:
-                    req.body.startDate.length === 0
-                        ? moment(0).unix()
-                        : moment(req.body.startDate, 'DD-MM-YYYY').unix(),
-                endDate:
-                    req.body.endDate.length === 0
-                        ? moment().unix()
-                        : moment(req.body.endDate, 'DD-MM-YYYY').unix(),
-                minDate: 1704067200,
-            };
+            const filter = new FilterModel(req.body);
 
-            if (filter.startDate === filter.endDate) {
-                const dayPlus = moment.unix(filter.endDate);
-                dayPlus.add(1, 'day');
-                filter.endDate = dayPlus.unix();
-            }
+            const listWall = await constrollerHelper.getListWall(filter);
 
-            let list = await sqlRequest.getListGoods();
-            list = list.map((item) => item.domain);
+            const urlList = constrollerHelper.getUrlList(listWall, filter);
 
-            let listGroups = [];
-            for (let i = 0; i < list.length; i += 10) {
-                listGroups.push(list.slice(i, i + 10));
-            }
-
-            const deepStep = Math.floor(filter.deep / 10);
-
-            let listWall = [];
-            for (let i = 0; i < listGroups.length; i += 1) {
-                for (let y = 0; y <= deepStep; y += 1) {
-                    let deep = 10;
-                    if (y === deepStep) {
-                        deep = filter.deep - deepStep * 10;
-                        if (deep === 0) {
-                            break;
-                        }
-                    }
-
-                    let code = 'return [';
-                    listGroups[i].forEach((domain) => {
-                        code += `API.wall.get({"domain": "${domain}", "count": ${deep}, "offset": ${
-                            y * 10
-                        }}),`;
-                    });
-                    code = code.slice(0, -1) + '];';
-
-                    const _res = await axios.post(
-                        'https://api.vk.com/method/execute',
-                        null,
-                        {
-                            headers: { Authorization: `Bearer ${TOKEN}` },
-                            params: {
-                                v: '5.236',
-                                code: `${code}`,
-                            },
-                        }
-                    );
-
-                    const _list = _res.data.response.map((item, index) => {
-                        if (!item) {
-                            sqlRequest.changeErrorRequest(listGroups[i][index]);
-                        }
-                        return item.items ? item.items : [];
-                    });
-                    listWall.push(_list.flat());
-                }
-            }
-            listWall = listWall.flat();
-
-            let urlList = listWall.flatMap((item) => {
-                class ItemPost {
-                    date;
-                    url;
-                    likes;
-                    reposts;
-                    views;
-                    text;
-                    urlImg = null;
-                    typeVideo = false;
-
-                    constructor(module) {
-                        this.date = moment
-                            .unix(module.date)
-                            .format('DD.MM.YYYY');
-                        this.url = `https://vk.com/wall${module.from_id}_${module.id}`;
-                        this.reposts = module.reposts.count;
-                        this.likes = module.likes.count;
-                        this.views =
-                            module.views === undefined ? 0 : module.views.count;
-                        this.text = module.text.slice(0, 250);
-
-                        if (module.attachments) {
-                            const attachments = module.attachments;
-
-                            const sizeArray = ['z', 'y', 'x', 'm', 's'];
-
-                            outerLoop: for (const size of sizeArray) {
-                                for (const attachment of attachments) {
-                                    if (attachment.type === 'photo') {
-                                        innerLoop: for (const item of attachment
-                                            .photo.sizes) {
-                                            if (item.type === size) {
-                                                this.urlImg = item.url;
-                                                break outerLoop;
-                                            }
-                                        }
-                                    } else if (attachment.type === 'video') {
-                                        const preview =
-                                            attachment.video.image[
-                                                attachment.video.image.length -
-                                                    1
-                                            ].url;
-                                        this.urlImg = preview ? preview : null;
-                                        if (!this.urlImg) {
-                                            this.typeVideo = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (item.hasOwnProperty('copy_history')) {
-                    item.attachments = item.copy_history[0].attachments;
-                    item.date = item.copy_history[0].date;
-                    item.text = item.copy_history[0].text;
-                }
-                const reposts = item.reposts.count;
-                const date = item.date;
-                if (
-                    reposts >= filter.noLessReposts &&
-                    reposts <= filter.noMoreReposts
-                ) {
-                    if (
-                        date >= filter.startDate &&
-                        date <= filter.endDate &&
-                        date > filter.minDate
-                    ) {
-                        return new ItemPost(item);
-                    }
-                }
-                return [];
-            });
-            urlList = urlList.sort((a, b) => b.reposts - a.reposts);
-
-            const urlGoogleSheets =
-                'https://script.google.com/macros/s/AKfycbxEffBnaCWp4Izit7vhGmIvZprScT4ZsWVhsTdj3NvVF_kItVJvdp2I5kqyL6SVPZQGjQ/exec';
-            axios.post(urlGoogleSheets, urlList, {
-                headers: { 'Content-Type': 'application/json' },
-            });
+            constrollerHelper.sendToGoogleSheets(urlList);
 
             res.status(200).json({
-                counts: urlList.length,
                 list: urlList,
             });
         } catch (err) {
