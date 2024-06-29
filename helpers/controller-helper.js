@@ -65,16 +65,8 @@ class ControllerHelper {
 
     getUrlList(listWall, filter) {
         const list = {
-            allSize: {
-                sandals: [],
-                sneakers: [],
-                other: [],
-            },
-            notSize: {
-                sandals: [],
-                sneakers: [],
-                other: [],
-            },
+            size: [],
+            notSize: [],
         };
 
         listWall.forEach((item) => {
@@ -95,28 +87,10 @@ class ControllerHelper {
                     date > filter.minDate
                 ) {
                     const obj = new ItemPostModule(item);
-                    const groupe = this.#cheakGrup(item.text);
-                    switch (groupe) {
-                        case 'sandals':
-                            if (this.#cheakSize(item.text)) {
-                                list.allSize.sandals.push(obj);
-                            } else {
-                                list.notSize.sandals.push(obj);
-                            }
-                            break;
-                        case 'sneakers':
-                            if (this.#cheakSize(item.text)) {
-                                list.allSize.sneakers.push(obj);
-                            } else {
-                                list.notSize.sneakers.push(obj);
-                            }
-                            break;
-                        default:
-                            if (this.#cheakSize(item.text)) {
-                                list.allSize.other.push(obj);
-                            } else {
-                                list.notSize.other.push(obj);
-                            }
+                    if (this.#cheakSize(item.text)) {
+                        list.size.push(obj);
+                    } else {
+                        list.notSize.push(obj);
                     }
                 }
             }
@@ -127,23 +101,10 @@ class ControllerHelper {
 
     async sendToGoogleSheets(urlList) {
         const urlGoogleSheets =
-            'https://script.google.com/macros/s/AKfycby8ckmXFQSyync4CqMZzOWqcLSE0FFpbF-Ij-82hgvFvElR_4nSk-GDVkszn-f4nd2QbQ/exec';
+            'https://script.google.com/macros/s/AKfycbyFKEHZQkU6OqJWhH5hhqaFqp9rnXfbITw22AIvqJi88Tq4mQRmKO7HTjY1U3bU7xz-sg/exec';
         axios.post(urlGoogleSheets, urlList, {
             headers: { 'Content-Type': 'application/json' },
         });
-    }
-
-    #cheakGrup(text) {
-        const sandalsGroupe = ['Бос', 'Тап', 'Санд', 'Крок', 'Лоф'];
-        const sneakersGroupe = ['Крос'];
-
-        if (sandalsGroupe.some((substring) => text.includes(substring))) {
-            return 'sandals';
-        }
-        if (sneakersGroupe.some((substring) => text.includes(substring))) {
-            return 'sneakers';
-        }
-        return 'other';
     }
 
     #cheakSize(text) {
