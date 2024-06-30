@@ -8,57 +8,28 @@ const TOKEN =
 
 class ControllerHelper {
     async getListWall(filter) {
-        let list = await sqlRequest.getListGoods();
-        list = list.map((item) => item.domain);
-
-        let listGroups = [];
-        for (let i = 0; i < list.length; i += 10) {
-            listGroups.push(list.slice(i, i + 10));
-        }
-
-        const deepStep = Math.floor(filter.deep / 10);
+        let listGroups = await sqlRequest.getListGoods();
+        listGroups = listGroups.map((item) => item.domain);
 
         let listWall = [];
-        for (let i = 0; i < listGroups.length; i += 1) {
-            for (let y = 0; y <= deepStep; y += 1) {
-                let deep = 10;
-                if (y === deepStep) {
-                    deep = filter.deep - deepStep * 10;
-                    if (deep === 0) {
+        for (const group of listGroups) {
+            let offset = 0;
+            while (offset >= 0) {
+                const list = await this.#getDataWall(group, offset);
+
+                for (const item of list.items) {
+                    if (this.#checkDate(filter, item.date)) {
+                        listWall.push(item);
+                    }
+                    if (item.date < filter.startDate && item.is_pinned !== 1) {
+                        offset = -2;
                         break;
                     }
                 }
 
-                let code = 'return [';
-                listGroups[i].forEach((domain) => {
-                    code += `API.wall.get({"domain": "${domain}", "count": ${deep}, "offset": ${
-                        y * 10
-                    }}),`;
-                });
-                code = code.slice(0, -1) + '];';
-
-                const _res = await axios.post(
-                    'https://api.vk.com/method/execute',
-                    null,
-                    {
-                        headers: { Authorization: `Bearer ${TOKEN}` },
-                        params: {
-                            v: '5.236',
-                            code: `${code}`,
-                        },
-                    }
-                );
-
-                const _list = _res.data.response.map((item, index) => {
-                    if (!item) {
-                        sqlRequest.changeErrorRequest(listGroups[i][index]);
-                    }
-                    return item.items ? item.items : [];
-                });
-                listWall.push(_list.flat());
+                offset += 1;
             }
         }
-        listWall = listWall.flat();
 
         return listWall;
     }
@@ -81,20 +52,18 @@ class ControllerHelper {
                 reposts >= filter.noLessReposts &&
                 reposts <= filter.noMoreReposts
             ) {
-                if (
-                    date >= filter.startDate &&
-                    date <= filter.endDate &&
-                    date > filter.minDate
-                ) {
-                    const obj = new ItemPostModule(item);
-                    if (this.#cheakSize(item.text)) {
-                        list.size.push(obj);
-                    } else {
-                        list.notSize.push(obj);
-                    }
+                const obj = new ItemPostModule(item);
+                if (this.#cheakSize(item.text)) {
+                    list.size.push(obj);
+                } else {
+                    list.notSize.push(obj);
                 }
             }
         });
+        list.size = list.size.sort((a, b) => a.dateForSort - b.dateForSort);
+        list.notSize = list.notSize.sort(
+            (a, b) => a.dateForSort - b.dateForSort
+        );
 
         return list;
     }
@@ -114,6 +83,27 @@ class ControllerHelper {
             return true;
         }
         return false;
+    }
+
+    async #getDataWall(domain, offset) {
+        const res = await axios.post(
+            'https://api.vk.com/method/wall.get',
+            null,
+            {
+                headers: { Authorization: `Bearer ${TOKEN}` },
+                params: {
+                    domain: domain,
+                    count: 50,
+                    offset: offset * 50,
+                    v: '5.236',
+                },
+            }
+        );
+        return res.data.response;
+    }
+
+    #checkDate(filter, date) {
+        return date >= filter.startDate && date <= filter.endDate;
     }
 }
 

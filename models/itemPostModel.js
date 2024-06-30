@@ -2,6 +2,7 @@ const moment = require('moment');
 
 module.exports = class ItemPostModule {
     date;
+    dateForSort;
     url;
     likes;
     reposts;
@@ -11,7 +12,8 @@ module.exports = class ItemPostModule {
     typeVideo = false;
 
     constructor(module) {
-        this.date = moment.unix(module.date).format('DD.MM.YYYY');
+        this.date = moment.unix(module.date).format('DD.MM.YYYY HH:mm');
+        this.dateForSort = module.date;
         this.url = `https://vk.com/wall${module.from_id}_${module.id}`;
         this.reposts = module.reposts.count;
         this.likes = module.likes.count;

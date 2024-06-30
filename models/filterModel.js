@@ -1,7 +1,6 @@
 const moment = require('moment');
 
 module.exports = class FilterModel {
-    deep;
     noLessReposts;
     noMoreReposts;
     startDate;
@@ -9,7 +8,6 @@ module.exports = class FilterModel {
     minDate;
 
     constructor(module) {
-        this.deep = module.deep.length === 0 ? 10 : parseInt(module.deep);
         this.noLessReposts =
             module.noLessReposts.length === 0
                 ? 0
@@ -21,11 +19,11 @@ module.exports = class FilterModel {
         this.startDate =
             module.startDate.length === 0
                 ? moment(0).unix()
-                : moment(module.startDate, 'DD-MM-YYYY').unix();
+                : moment(module.startDate, 'DD-MM-YYYY HH-mm').unix();
         this.endDate =
             module.endDate.length === 0
                 ? moment().unix()
-                : moment(module.endDate, 'DD-MM-YYYY').unix();
+                : moment(module.endDate, 'DD-MM-YYYY HH-mm').unix();
         this.minDate = 1704067200;
 
         if (this.startDate === this.endDate) {
