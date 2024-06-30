@@ -11,7 +11,7 @@ module.exports = class ItemPostModule {
     typeVideo = false;
 
     constructor(module) {
-        this.date = moment.unix(module.date).format('DD.MM.YYYY');
+        this.date = moment.unix(module.date).format('DD.MM.YYYY HH:mm');
         this.url = `https://vk.com/wall${module.from_id}_${module.id}`;
         this.reposts = module.reposts.count;
         this.likes = module.likes.count;
