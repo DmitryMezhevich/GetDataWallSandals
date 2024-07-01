@@ -17,13 +17,9 @@ module.exports = class FilterModel {
                 ? Number.MAX_VALUE
                 : parseInt(module.noMoreReposts);
         this.startDate =
-            module.startDate.length === 0
-                ? moment(0).unix()
-                : moment(module.startDate, 'DD-MM-YYYY HH-mm').unix();
+            module.startDate.length === 0 ? moment(0).unix() : module.startDate;
         this.endDate =
-            module.endDate.length === 0
-                ? moment().unix()
-                : moment(module.endDate, 'DD-MM-YYYY HH-mm').unix();
+            module.endDate.length === 0 ? moment().unix() : module.endDate;
         this.minDate = 1704067200;
 
         if (this.startDate === this.endDate) {
