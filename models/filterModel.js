@@ -1,4 +1,4 @@
-const moment = require('moment-timezone');
+const moment = require('moment');
 
 module.exports = class FilterModel {
     noLessReposts;
@@ -17,17 +17,9 @@ module.exports = class FilterModel {
                 ? Number.MAX_VALUE
                 : parseInt(module.noMoreReposts);
         this.startDate =
-            module.startDate.length === 0
-                ? moment(0).unix()
-                : moment
-                      .tz(module.startDate, 'DD-MM-YYYY HH-mm', 'Europe/Moscow')
-                      .unix();
+            module.startDate.length === 0 ? moment(0).unix() : module.startDate;
         this.endDate =
-            module.endDate.length === 0
-                ? moment().unix()
-                : moment
-                      .tz(module.endDate, 'DD-MM-YYYY HH-mm', 'Europe/Moscow')
-                      .unix();
+            module.endDate.length === 0 ? moment().unix() : module.endDate;
 
         if (this.startDate === this.endDate) {
             const dayPlus = moment.unix(this.endDate);
