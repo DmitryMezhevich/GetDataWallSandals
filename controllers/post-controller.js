@@ -20,11 +20,16 @@ class TarckController {
             constrollerHelper.sendToGoogleSheets(urlList);
 
             res.status(200).json({
+                date: {
+                    start: filter.startDate,
+                    end: filter.endDate,
+                },
                 count: {
                     size: urlList.size.length,
                     notSize: urlList.notSize.length,
                 },
                 list: urlList,
+                listWall: listWall,
             });
         } catch (err) {
             logger.error(`Error: ${err.message}`);
