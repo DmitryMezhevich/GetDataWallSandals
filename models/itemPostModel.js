@@ -12,7 +12,9 @@ module.exports = class ItemPostModule {
     typeVideo = false;
 
     constructor(module) {
-        this.date = moment.unix(module.date).format('DD.MM.YYYY HH:mm');
+        this.date = moment
+            .unix(module.date + 3 * 60 * 60)
+            .format('DD.MM.YYYY HH:mm');
         this.dateForSort = module.date;
         this.url = `https://vk.com/wall${module.from_id}_${module.id}`;
         this.reposts = module.reposts.count;
