@@ -19,15 +19,11 @@ module.exports = class FilterModel {
         this.startDate =
             module.startDate.length === 0
                 ? moment(0).unix()
-                : moment
-                      .tz(module.startDate, 'DD-MM-YYYY HH-mm', 'Europe/Moscow')
-                      .unix();
+                : moment(module.startDate, 'DD-MM-YYYY HH-mm').unix();
         this.endDate =
             module.endDate.length === 0
                 ? moment().unix()
-                : moment
-                      .tz(module.endDate, 'DD-MM-YYYY HH-mm', 'Europe/Moscow')
-                      .unix();
+                : moment(module.endDate, 'DD-MM-YYYY HH-mm').unix();
 
         if (this.startDate === this.endDate) {
             const dayPlus = moment.unix(this.endDate);
