@@ -9,7 +9,11 @@ const TOKEN =
 class ControllerHelper {
     async getListWall(filter) {
         let listGroups = await sqlRequest.getListGoods();
-        listGroups = listGroups.map((item) => item.domain);
+        listGroups = listGroups.flatMap((item) => {
+            return filter.selectedPlaces.includes(item.place)
+                ? item.domain
+                : [];
+        });
 
         let listWall = [];
         for (const group of listGroups) {
