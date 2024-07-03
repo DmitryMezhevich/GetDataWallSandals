@@ -6,6 +6,7 @@ module.exports = class FilterModel {
     startDate;
     endDate;
     minDate = 1704067200;
+    selectedPlaces;
 
     constructor(module) {
         this.noLessReposts =
@@ -20,6 +21,7 @@ module.exports = class FilterModel {
             module.startDate.length === 0 ? moment(0).unix() : module.startDate;
         this.endDate =
             module.endDate.length === 0 ? moment().unix() : module.endDate;
+        this.selectedPlaces = module.selectedPlaces;
 
         if (this.startDate === this.endDate) {
             const dayPlus = moment.unix(this.endDate);

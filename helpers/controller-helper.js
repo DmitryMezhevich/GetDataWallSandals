@@ -9,7 +9,11 @@ const TOKEN =
 class ControllerHelper {
     async getListWall(filter) {
         let listGroups = await sqlRequest.getListGoods();
-        listGroups = listGroups.map((item) => item.domain);
+        listGroups = listGroups.flatMap((item) => {
+            return filter.selectedPlaces.includes(item.place)
+                ? item.domain
+                : [];
+        });
 
         let listWall = [];
         for (const group of listGroups) {
@@ -32,6 +36,25 @@ class ControllerHelper {
         }
 
         return listWall;
+    }
+
+    async getListGroups() {
+        const fullListGroups = await sqlRequest.getListGoods();
+        let listPlaces = [];
+        for (const item of fullListGroups) {
+            if (!listPlaces.includes(item.place)) {
+                listPlaces.push(item.place);
+            }
+        }
+        listPlaces.sort();
+        listPlaces = listPlaces.map((item, index) => {
+            return {
+                id: index + 1,
+                text: item,
+            };
+        });
+
+        return listPlaces;
     }
 
     getUrlList(listWall, filter) {
