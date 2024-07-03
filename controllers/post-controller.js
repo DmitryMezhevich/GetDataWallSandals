@@ -32,6 +32,17 @@ class TarckController {
         }
     }
 
+    async getListPlaces(req, res, next) {
+        try {
+            const listPlaces = await constrollerHelper.getListGroups();
+
+            res.status(200).json(listPlaces);
+        } catch (err) {
+            logger.error(`Error: ${err.message}`);
+            res.status(500).json({ err: err.message });
+        }
+    }
+
     async addNewGroup(req, res, next) {
         try {
             const { url, type } = req.body;

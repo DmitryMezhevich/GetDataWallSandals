@@ -34,6 +34,25 @@ class ControllerHelper {
         return listWall;
     }
 
+    async getListGroups() {
+        const fullListGroups = await sqlRequest.getListGoods();
+        let listPlaces = [];
+        for (const item of fullListGroups) {
+            if (!listPlaces.includes(item.place)) {
+                listPlaces.push(item.place);
+            }
+        }
+        listPlaces.sort();
+        listPlaces = listPlaces.map((item, index) => {
+            return {
+                id: index + 1,
+                text: item,
+            };
+        });
+
+        return listPlaces;
+    }
+
     getUrlList(listWall, filter) {
         const list = {
             size: [],
