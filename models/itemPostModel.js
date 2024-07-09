@@ -8,6 +8,7 @@ module.exports = class ItemPostModule {
     reposts;
     views;
     text;
+    place;
     urlImg = null;
     typeVideo = false;
 
@@ -21,6 +22,7 @@ module.exports = class ItemPostModule {
         this.likes = module.likes.count;
         this.views = module.views === undefined ? 0 : module.views.count;
         this.text = module.text;
+        this.place = module.place;
         // this.text = module.text.slice(0, 250);
 
         if (module.attachments) {

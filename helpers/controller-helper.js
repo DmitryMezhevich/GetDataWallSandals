@@ -10,19 +10,21 @@ class ControllerHelper {
     async getListWall(filter) {
         let listGroups = await sqlRequest.getListGoods();
         listGroups = listGroups.flatMap((item) => {
-            return filter.selectedPlaces.includes(item.place)
-                ? item.domain
-                : [];
+            if (filter.selectedPlaces.includes(item.place)) {
+                return item;
+            }
+            return [];
         });
 
         let listWall = [];
         for (const group of listGroups) {
             let offset = 0;
             while (offset >= 0) {
-                const list = await this.#getDataWall(group, offset);
+                const list = await this.#getDataWall(group.domain, offset);
 
                 for (const item of list.items) {
                     if (this.#checkDate(filter, item.date)) {
+                        item.place = group.place;
                         listWall.push(item);
                     }
                     if (item.date < filter.startDate && item.is_pinned !== 1) {
@@ -83,17 +85,15 @@ class ControllerHelper {
                 }
             }
         });
-        list.size = list.size.sort((a, b) => a.dateForSort - b.dateForSort);
-        list.notSize = list.notSize.sort(
-            (a, b) => a.dateForSort - b.dateForSort
-        );
+        list.size = list.size.sort((a, b) => a.place - b.place);
+        list.notSize = list.notSize.sort((a, b) => a.place - b.place);
 
         return list;
     }
 
     async sendToGoogleSheets(urlList) {
         const urlGoogleSheets =
-            'https://script.google.com/macros/s/AKfycbyFKEHZQkU6OqJWhH5hhqaFqp9rnXfbITw22AIvqJi88Tq4mQRmKO7HTjY1U3bU7xz-sg/exec';
+            'https://script.google.com/macros/s/AKfycbwStLz-ylh3FeE09hbcobKUfyIK3owjb-2w2blfLavDIDVafchMM58tvboS1XurKlMLYQ/exec';
         axios.post(urlGoogleSheets, urlList, {
             headers: { 'Content-Type': 'application/json' },
         });
