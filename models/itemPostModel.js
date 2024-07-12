@@ -18,8 +18,9 @@ module.exports = class ItemPostModule {
             .format('DD.MM.YYYY HH:mm');
         this.dateForSort = module.date;
         this.url = `https://vk.com/wall${module.from_id}_${module.id}`;
-        this.reposts = module.reposts.count;
-        this.likes = module.likes.count;
+        this.reposts =
+            module.reposts.count === undefined ? 0 : module.reposts.count;
+        this.likes = module.likes.count === undefined ? 0 : module.likes.count;
         this.views = module.views === undefined ? 0 : module.views.count;
         this.text = module.text;
         this.place = module.place;
