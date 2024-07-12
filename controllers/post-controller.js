@@ -17,7 +17,7 @@ class TarckController {
 
             const urlList = constrollerHelper.getUrlList(listWall, filter);
 
-            constrollerHelper.sendToGoogleSheets(urlList);
+            await constrollerHelper.sendToGoogleSheets(urlList);
 
             res.status(200).json({
                 count: {

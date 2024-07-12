@@ -5,6 +5,8 @@ const ItemPostModule = require('../models/itemPostModel');
 
 const TOKEN =
     'vk1.a.KFKmxEKIi-kJiFKL4vbjsc5m2FIGRGEWKXFNvZzAIIKMbohUPGcOUBv812djGZy9H4vIJhVHsBm96QaC4R71fs0cw9FdJxi84v2PjZ0gZ-Vbaa8Debn9wKuJKBads66lO6TnB0FvZxGDXk10ql5JbAYDUozXDS4oLJSohLIjxoUx06n5Hmq0HPYDaVKHoh2KMrJK2Y02BPnVy8f4t49w6g';
+const urlGoogleSheets =
+    'https://script.google.com/macros/s/AKfycbyHLxrn-qfwScAewdke6zYKXXfwFWOAeJFd4QfIRfvcVau8Ra82UjtYZYO_TbXKb4dHaA/exec';
 
 class ControllerHelper {
     async getListWall(filter) {
@@ -92,9 +94,37 @@ class ControllerHelper {
     }
 
     async sendToGoogleSheets(urlList) {
-        const urlGoogleSheets =
-            'https://script.google.com/macros/s/AKfycbwStLz-ylh3FeE09hbcobKUfyIK3owjb-2w2blfLavDIDVafchMM58tvboS1XurKlMLYQ/exec';
-        axios.post(urlGoogleSheets, urlList, {
+        const data = {
+            size: [],
+            notSize: [],
+        };
+
+        data.size = urlList.size.map((item) => {
+            return [
+                item.date,
+                item.place,
+                `=IMAGE("${item.urlImg}")`,
+                item.text,
+                item.url,
+                item.reposts,
+                item.likes,
+                item.views,
+            ];
+        });
+        data.notSize = urlList.notSize.map((item) => {
+            return [
+                item.date,
+                item.place,
+                `=IMAGE("${item.urlImg}")`,
+                item.text,
+                item.url,
+                item.reposts,
+                item.likes,
+                item.views,
+            ];
+        });
+
+        await axios.post(urlGoogleSheets, data, {
             headers: { 'Content-Type': 'application/json' },
         });
     }
