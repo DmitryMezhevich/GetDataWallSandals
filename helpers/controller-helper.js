@@ -73,8 +73,7 @@ class ControllerHelper {
                 item.date = item.copy_history[0].date;
                 item.text = item.copy_history[0].text;
             }
-            const reposts = item.reposts.count;
-            const date = item.date;
+            const reposts = 'count' in item.reposts ? item.reposts.count : 0;
             if (
                 reposts >= filter.noLessReposts &&
                 reposts <= filter.noMoreReposts
