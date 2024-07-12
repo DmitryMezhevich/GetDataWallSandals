@@ -127,6 +127,8 @@ class ControllerHelper {
         await axios.post(urlGoogleSheets, data, {
             headers: { 'Content-Type': 'application/json' },
         });
+
+        return data;
     }
 
     #cheakSize(text) {
